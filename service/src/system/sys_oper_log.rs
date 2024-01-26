@@ -3,12 +3,11 @@ use chrono::NaiveDateTime;
 use db::{
     common::res::{ListData, PageParams},
     system::{
-        entities::{prelude::SysOperLog, sys_oper_log},
-        models::sys_oper_log::{SysOperLogDeleteReq, SysOperLogSearchReq},
+        entities::{prelude::SysOperLog, sys_oper_log}, models::sys_oper_log::{SysOperLogDeleteReq, SysOperLogSearchReq},
         prelude::SysOperLogModel,
     },
 };
-use sea_orm::{sea_query::Table, ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder};
+use sea_orm::{sea_query::{Table, Query}, ColumnTrait, ConnectionTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter, QueryOrder};
 
 /// get_list 获取列表
 /// page_params 分页参数
@@ -73,7 +72,7 @@ pub async fn get_sort_list(db: &DatabaseConnection, page_params: PageParams, req
 pub async fn delete(db: &DatabaseConnection, delete_req: SysOperLogDeleteReq) -> Result<String> {
     let mut s = SysOperLog::delete_many();
 
-    s = s.filter(sys_oper_log::Column::OperId.is_in(delete_req.oper_log_ids));
+    s = s.filter(sys_oper_log::Column::OperId.is_in(delete_req.oper_ids));
 
     // 开始删除
     let d = s.exec(db).await.map_err(|e| anyhow!(e.to_string()))?;
@@ -87,7 +86,8 @@ pub async fn delete(db: &DatabaseConnection, delete_req: SysOperLogDeleteReq) ->
 
 /// delete 完全删除
 pub async fn clean(db: &DatabaseConnection) -> Result<String> {
-    let stmt = Table::truncate().table(sys_oper_log::Entity).to_owned();
+    //let stmt = Table::truncate().table(sys_oper_log::Entity).to_owned();
+    let stmt = Query::delete().from_table(sys_oper_log::Entity).to_owned();
     let db_backend = db.get_database_backend();
     db.execute(db_backend.build(&stmt)).await?;
     Ok("日志清空成功".to_string())

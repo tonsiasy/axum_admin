@@ -13,5 +13,5 @@ pub struct SysOperLogSearchReq {
 
 #[derive(Deserialize)]
 pub struct SysOperLogDeleteReq {
-    pub oper_log_ids: Vec<String>,
+    pub oper_ids: Vec<String>,
 }
